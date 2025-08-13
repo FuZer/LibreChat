@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>GIS UI</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html,body,#app{height:100%;margin:0}
+    #map{height:100%;width:100%}
+    .toolbar{position:absolute;z-index:1000;top:10px;left:10px;background:#fff;border-radius:8px;padding:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);font-family:system-ui,Arial}
+    .toolbar input{width:280px}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="toolbar">
+      <div><strong>GIS UI</strong></div>
+      <div style="margin-top:6px">
+        GeoJSON URL:
+        <input id="src" placeholder="/geo/sample" />
+        <button id="load">Load</button>
+        <button id="fit">Fit</button>
+      </div>
+    </div>
+    <div id="map"></div>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const srcParam = qs.get("src") || "/geo/sample";
+    const bboxParam = qs.get("bbox"); // "minLon,minLat,maxLon,maxLat"
+
+    const map = L.map("map", { zoomControl: true }).setView([37.5665,126.9780], 11);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:'&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const layer = L.geoJSON(null).addTo(map);
+    const $src = document.getElementById("src");
+    const $load = document.getElementById("load");
+    const $fit = document.getElementById("fit");
+    $src.value = srcParam;
+
+    function fitToData() {
+      try {
+        const b = layer.getBounds();
+        if (b.isValid()) map.fitBounds(b.pad(0.2));
+      } catch (e) {}
+    }
+
+    async function loadGeoJSON(url) {
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        layer.clearLayers();
+        layer.addData(data);
+        fitToData();
+      } catch (e) {
+        alert("Failed to load GeoJSON");
+      }
+    }
+
+    $load.onclick = () => loadGeoJSON($src.value);
+    $fit.onclick = () => fitToData();
+
+    if (bboxParam) {
+      const [minX,minY,maxX,maxY] = bboxParam.split(",").map(Number);
+      if ([minX,minY,maxX,maxY].every(v => !isNaN(v))) {
+        const sw = L.latLng(minY, minX), ne = L.latLng(maxY, maxX);
+        map.fitBounds(L.latLngBounds(sw, ne));
+      }
+    }
+    loadGeoJSON(srcParam);
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "type": "FeatureCollection",
+  "name": "seoul_mini",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Seoul City Hall" },
+      "geometry": { "type": "Point", "coordinates": [126.9779692, 37.566535] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Gangnam Station" },
+      "geometry": { "type": "Point", "coordinates": [127.027621, 37.497942] }
+    }
+  ]
+}
